@@ -37,6 +37,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import javax.mail.internet.MimeMultipart;
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
@@ -145,6 +146,11 @@ public class Generator extends AbstractGenerator
         addProducesAnnotation(uniqueResponseMimeTypes, method);
 
         final JDocComment javadoc = addBaseJavaDoc(action, method);
+
+        if( context.getConfiguration().isAddRequestContext()) {
+            JVar param = method.param(HttpServletRequest.class, "request");
+            param.annotate(javax.ws.rs.core.Context.class);
+        }
 
         addPathParameters(action, method, javadoc);
         addHeaderParameters(action, method, javadoc);

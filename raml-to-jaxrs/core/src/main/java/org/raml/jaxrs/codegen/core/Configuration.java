@@ -29,6 +29,16 @@ import org.raml.jaxrs.codegen.core.ext.GeneratorExtension;
 
 public class Configuration
 {
+    private boolean addRequestContext;
+
+    public void setAddRequestContext(boolean addRequestContext) {
+        this.addRequestContext = addRequestContext;
+    }
+
+    public boolean isAddRequestContext() {
+        return addRequestContext;
+    }
+
     public enum JaxrsVersion
     {
         JAXRS_1_1("1.1"), JAXRS_2_0("2.0");//TEST

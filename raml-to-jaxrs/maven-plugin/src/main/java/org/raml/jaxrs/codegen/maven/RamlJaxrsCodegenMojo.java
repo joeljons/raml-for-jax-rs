@@ -102,6 +102,12 @@ public class RamlJaxrsCodegenMojo extends AbstractMojo {
 	@Parameter(property = "mapToVoid", defaultValue = "false")
 	private boolean mapToVoid;
 
+    /**
+     * Should @Context be added to all JAX-RS interface method calls
+     */
+    @Parameter(property = "addRequestContext", defaultValue = "false")
+    private boolean addRequestContext;
+
 	/**
 	 * Whether to empty the output directory before generation occurs, to clear
 	 * out all source files that have been generated previously.
@@ -173,6 +179,7 @@ public class RamlJaxrsCodegenMojo extends AbstractMojo {
 			configuration.setUseJsr303Annotations(useJsr303Annotations);
 			configuration.setAsyncResourceTrait(asyncResourceTrait);
 			configuration.setGenerateClientInterface(generateClient);
+            configuration.setAddRequestContext(addRequestContext);
 			configuration.setJsonMapper(AnnotationStyle.valueOf(jsonMapper.toUpperCase()));
 			configuration.setSourceDirectory(sourceDirectory);
 			configuration.setJsonMapperConfiguration(jsonMapperConfiguration);
