@@ -108,11 +108,26 @@ public class Types
         {
         	            return getGeneratorType(InputStream.class);
         }
-        else
+        else if( isCharacterType( mimeType ))
         {
             // fallback to a generic reader
             return getGeneratorType(Reader.class);
         }
+        else
+        {
+            // fallback to a generic reader
+            return getGeneratorType(InputStream.class);
+        }
+    }
+
+    private boolean isCharacterType(MimeType mimeType) {
+        if(mimeType== null) return false;
+        return mimeType.getType().contains( "javascript") ||
+                mimeType.getType().contains( "text") ||
+                mimeType.getType().contains( "json") ||
+                mimeType.getType().contains( "xml") ||
+                mimeType.getType().contains( "yaml") ||
+                mimeType.getType().contains( "raml");
     }
 
     public JType getResponseEntityClass(final MimeType mimeType) throws IOException

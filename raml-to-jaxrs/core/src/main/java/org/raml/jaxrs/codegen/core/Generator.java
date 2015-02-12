@@ -168,10 +168,10 @@ public class Generator extends AbstractGenerator
                                               final boolean asyncMethod,
                                               final JDefinedClass resourceInterface) throws Exception
     {
-    	if (asyncMethod) 
+    	if (asyncMethod)
     	{
     	   // returns void but also generate the response helper object
-    	   createResourceMethodReturnType(methodName, action, resourceInterface);
+    	   createResourceMethodReturnType(methodName, action, returnsVoid, resourceInterface);
     	   return types.getGeneratorType(void.class);
     	}
     	else
@@ -181,7 +181,7 @@ public class Generator extends AbstractGenerator
         }
         else
         {
-            return createResourceMethodReturnType(methodName, action, resourceInterface);
+            return createResourceMethodReturnType(methodName, action, returnsVoid, resourceInterface);
         }
     }
     private void addAsyncResponseParameter(String asyncResourceTrait,final JMethod method,final JDocComment javadoc) throws Exception {
@@ -197,6 +197,7 @@ public class Generator extends AbstractGenerator
 
     private JDefinedClass createResourceMethodReturnType(final String methodName,
                                                          final Action action,
+                                                         final boolean returnsVoid,
                                                          final JDefinedClass resourceInterface)
         throws Exception
     {
@@ -207,17 +208,19 @@ public class Generator extends AbstractGenerator
         responseClassConstructor.param(javax.ws.rs.core.Response.class, "delegate");
         responseClassConstructor.body().invoke("super").arg(JExpr.ref("delegate"));
 
-        for (final Entry<String, Response> statusCodeAndResponse : action.getResponses().entrySet())
-        {
-            createResponseBuilderInResourceMethodReturnType(action, responseClass, statusCodeAndResponse);
+        if( !returnsVoid) {
+            for (final Entry<String, Response> statusCodeAndResponse : action.getResponses().entrySet()) {
+                createResponseBuilderInResourceMethodReturnType(action, responseClass, statusCodeAndResponse);
+            }
         }
 
-        createGenericResponseBuilderInResourceMethodReturnType( responseClass );
+        createGenericResponseBuilderInResourceMethodReturnType( responseClass, false );
+        createGenericResponseBuilderInResourceMethodReturnType( responseClass, true );
 
         return responseClass;
     }
 
-    private void createGenericResponseBuilderInResourceMethodReturnType(final JDefinedClass responseClass )
+    private void createGenericResponseBuilderInResourceMethodReturnType(final JDefinedClass responseClass, boolean includeEntity )
             throws Exception
     {
         final String responseBuilderMethodName = GENERIC_RESPONSE_METHOD_NAME;
@@ -231,14 +234,17 @@ public class Generator extends AbstractGenerator
                 .arg( JExpr.ref("status"));
 
         responseBuilderMethod.param( context.getCodeModel().parseType( "int" ), "status");
-        responseBuilderMethod.param( context.getGeneratorType(StreamingOutput.class), GENERIC_PAYLOAD_ARGUMENT_NAME);
+        if( includeEntity )
+            responseBuilderMethod.param( context.getGeneratorType(StreamingOutput.class), GENERIC_PAYLOAD_ARGUMENT_NAME);
 
         final JBlock responseBuilderMethodBody = responseBuilderMethod.body();
 
         final JVar builderVariable = responseBuilderMethodBody.decl(
                 types.getGeneratorType(ResponseBuilder.class), "responseBuilder", builderArgument);
-        responseBuilderMethodBody.invoke(builderVariable, GENERIC_PAYLOAD_ARGUMENT_NAME).arg(
-                JExpr.ref(GENERIC_PAYLOAD_ARGUMENT_NAME));
+        if( includeEntity ) {
+            responseBuilderMethodBody.invoke(builderVariable, GENERIC_PAYLOAD_ARGUMENT_NAME).arg(
+                    JExpr.ref(GENERIC_PAYLOAD_ARGUMENT_NAME));
+        }
 
         responseBuilderMethodBody._return(JExpr._new(responseClass).arg(builderVariable.invoke("build")));
     }
