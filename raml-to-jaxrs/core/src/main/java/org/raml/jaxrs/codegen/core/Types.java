@@ -121,7 +121,9 @@ public class Types
     }
 
     private boolean isCharacterType(MimeType mimeType) {
-        if(mimeType== null) return false;
+        if (mimeType == null || mimeType.getType() == null) {
+            return false;
+        }
         return mimeType.getType().contains( "javascript") ||
                 mimeType.getType().contains( "text") ||
                 mimeType.getType().contains( "json") ||

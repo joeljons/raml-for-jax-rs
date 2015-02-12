@@ -132,7 +132,7 @@ public class Generator extends AbstractGenerator
         // the actually created unique method name should be needed in the previous method but
         // no way of doing this :(
         final JMethod method = context.createResourceMethod(resourceInterface, methodName,
-            resourceMethodReturnType);
+                context.getGeneratorType(javax.ws.rs.core.Response.class));
         
         if (configuration.getMethodThrowException() != null ) {
             method._throws(configuration.getMethodThrowException());
