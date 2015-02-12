@@ -19,7 +19,7 @@
   </distributionManagement>  
   <modules>
 	<!-- <module>eclipse</module> -->
-	<module>jaxrs-to-raml</module>
+	<!--<module>jaxrs-to-raml</module>-->
 	<module>raml-to-jaxrs</module>
   </modules>
 </project> 
