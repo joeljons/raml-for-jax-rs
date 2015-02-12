@@ -100,11 +100,11 @@ public class Types
         {
             return schemaClass;
         }
-        else if (startsWith(mimeType.getType(), "text/"))
+        else if (mimeType != null && startsWith(mimeType.getType(), "text/"))
         {
             return getGeneratorType(String.class);
         }
-        else if (MediaType.APPLICATION_OCTET_STREAM.equals(mimeType.getType()))
+        else if (mimeType != null && MediaType.APPLICATION_OCTET_STREAM.equals(mimeType.getType()))
         {
         	            return getGeneratorType(InputStream.class);
         }
@@ -152,6 +152,8 @@ public class Types
     
     private JClass getSchemaClass(final MimeType mimeType) throws IOException
     {
+        if( mimeType == null )
+            return null;
         final String schemaNameOrContent = mimeType.getSchema();
         if (isBlank(schemaNameOrContent))
         {

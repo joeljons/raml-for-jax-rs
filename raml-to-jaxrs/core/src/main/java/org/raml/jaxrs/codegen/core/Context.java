@@ -128,6 +128,11 @@ class Context
             new SchemaStore()), new SchemaGenerator());
     }
 
+    public JCodeModel getCodeModel()
+    {
+        return codeModel;
+    }
+
     public Set<String> generate() throws IOException
     {
         final ByteArrayOutputStream baos = new ByteArrayOutputStream();

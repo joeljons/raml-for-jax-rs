@@ -60,6 +60,7 @@ import org.apache.commons.lang.builder.ToStringBuilder;
 import org.raml.jaxrs.codegen.core.Configuration.JaxrsVersion;
 import org.raml.jaxrs.codegen.core.ext.GeneratorExtension;
 import org.raml.model.Action;
+import org.raml.model.ActionType;
 import org.raml.model.MimeType;
 import org.raml.model.Raml;
 import org.raml.model.Resource;
@@ -93,6 +94,7 @@ import com.sun.codemodel.JVar;
 
 public abstract class AbstractGenerator {
 	protected static final String DEFAULT_ANNOTATION_PARAMETER = "value";
+    protected static final String GENERIC_RESPONSE_METHOD_NAME = "respond";
 
 	protected static final Logger LOGGER = LoggerFactory
 			.getLogger(Generator.class);
@@ -301,8 +303,8 @@ public abstract class AbstractGenerator {
 		method.param(types.getRequestEntityClass(bodyMimeType),
 				GENERIC_PAYLOAD_ARGUMENT_NAME);
 
-		javadoc.addParam(GENERIC_PAYLOAD_ARGUMENT_NAME).add(
-				getPrefixedExampleOrBlank(bodyMimeType.getExample()));
+		javadoc.addParam(GENERIC_PAYLOAD_ARGUMENT_NAME).add( bodyMimeType == null ? "the request body" :
+                getPrefixedExampleOrBlank(bodyMimeType.getExample()));
 	}
 
 	private boolean hasAMultiTypeFormParameter(final MimeType bodyMimeType) {
@@ -358,19 +360,37 @@ public abstract class AbstractGenerator {
 
 	protected void addBodyParameters(final MimeType bodyMimeType,
 			final JMethod method, final JDocComment javadoc) throws Exception {
-		if (bodyMimeType == null) {
-			return;
-		} else if (MediaType.APPLICATION_FORM_URLENCODED.equals(bodyMimeType
-				.getType())) {
-			addFormParameters(bodyMimeType, method, javadoc);
-		} else if (MediaType.MULTIPART_FORM_DATA.equals(bodyMimeType.getType())) {
-			// use a "catch all" javax.mail.internet.MimeMultipart parameter
-			addCatchAllFormParametersArgument(bodyMimeType, method, javadoc,
-					types.getGeneratorType(MimeMultipart.class));
-		} else {
-			addPlainBodyArgument(bodyMimeType, method, javadoc);
-		}
+		addBodyParameters(null, bodyMimeType, method, javadoc);
 	}
+
+    protected void addBodyParameters(ActionType type, final MimeType bodyMimeType,
+                                   final JMethod method,
+                                   final JDocComment javadoc) throws Exception
+    {
+        if (bodyMimeType == null && !hasBody( type ))
+        {
+            return;
+        }
+        else if (bodyMimeType != null && MediaType.APPLICATION_FORM_URLENCODED.equals(bodyMimeType.getType()))
+        {
+            addFormParameters(bodyMimeType, method, javadoc);
+        }
+        else if (bodyMimeType != null && MediaType.MULTIPART_FORM_DATA.equals(bodyMimeType.getType()))
+        {
+            // use a "catch all" javax.mail.internet.MimeMultipart parameter
+            addCatchAllFormParametersArgument(bodyMimeType, method, javadoc,
+                    types.getGeneratorType(MimeMultipart.class));
+        }
+        else
+        {
+            addPlainBodyArgument(bodyMimeType, method, javadoc);
+        }
+    }
+
+
+    private boolean hasBody(ActionType type) {
+        return type == ActionType.PUT || type == ActionType.POST || type == ActionType.PATCH;
+    }
 
 	protected void addPathParameters(final Action action, final JMethod method,
 			final JDocComment javadoc) throws Exception {

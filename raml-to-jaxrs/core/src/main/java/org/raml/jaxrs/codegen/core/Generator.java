@@ -53,6 +53,7 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response.ResponseBuilder;
+import javax.ws.rs.core.StreamingOutput;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.builder.ToStringBuilder;
@@ -148,7 +149,7 @@ public class Generator extends AbstractGenerator
         addPathParameters(action, method, javadoc);
         addHeaderParameters(action, method, javadoc);
         addQueryParameters(action, method, javadoc);
-        addBodyParameters(bodyMimeType, method, javadoc);
+        addBodyParameters(action.getType(),bodyMimeType, method, javadoc);
         if (asyncMethod) {
             addAsyncResponseParameter(asyncResourceTrait, method, javadoc);
         }
@@ -211,7 +212,35 @@ public class Generator extends AbstractGenerator
             createResponseBuilderInResourceMethodReturnType(action, responseClass, statusCodeAndResponse);
         }
 
+        createGenericResponseBuilderInResourceMethodReturnType( responseClass );
+
         return responseClass;
+    }
+
+    private void createGenericResponseBuilderInResourceMethodReturnType(final JDefinedClass responseClass )
+            throws Exception
+    {
+        final String responseBuilderMethodName = GENERIC_RESPONSE_METHOD_NAME;
+
+        final JMethod responseBuilderMethod = responseClass.method(PUBLIC + STATIC, responseClass,
+                responseBuilderMethodName);
+
+
+        JInvocation builderArgument = types.getGeneratorClass(javax.ws.rs.core.Response.class)
+                .staticInvoke("status")
+                .arg( JExpr.ref("status"));
+
+        responseBuilderMethod.param( context.getCodeModel().parseType( "int" ), "status");
+        responseBuilderMethod.param( context.getGeneratorType(StreamingOutput.class), GENERIC_PAYLOAD_ARGUMENT_NAME);
+
+        final JBlock responseBuilderMethodBody = responseBuilderMethod.body();
+
+        final JVar builderVariable = responseBuilderMethodBody.decl(
+                types.getGeneratorType(ResponseBuilder.class), "responseBuilder", builderArgument);
+        responseBuilderMethodBody.invoke(builderVariable, GENERIC_PAYLOAD_ARGUMENT_NAME).arg(
+                JExpr.ref(GENERIC_PAYLOAD_ARGUMENT_NAME));
+
+        responseBuilderMethodBody._return(JExpr._new(responseClass).arg(builderVariable.invoke("build")));
     }
 
     private void createResponseBuilderInResourceMethodReturnType(final Action action,
